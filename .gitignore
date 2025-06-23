@@ -1,0 +1,9 @@
+# Exclure le dossier target (fichiers compilés)
+/target/
+
+# Exclure fichiers temporaires IDE (optionnel)
+*.log
+*.tmp
+*.iml
+.vscode/
+.idea/
