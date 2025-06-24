@@ -163,9 +163,8 @@ public class AutomobilisteController {
     public ResponseEntity<?> getReservations(@PathVariable Long id) {
         Optional<Automobiliste> automobilisteOpt = automobilisteRepository.findById(id);
         if (automobilisteOpt.isPresent()) {
-            // Récupérer TOUTES les réservations de l'automobiliste
-            List<Reservation> allReservations = reservationRepository.findByAutomobilisteId(id);
-            return ResponseEntity.ok(allReservations);
+            List<Reservation> payeeReservations = reservationRepository.findByAutomobilisteIdAndEtatReservation(id, "payee");
+            return ResponseEntity.ok(payeeReservations);
         }
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorMessage("Automobiliste not found"));
     }
@@ -251,4 +250,112 @@ public class AutomobilisteController {
         }
     }
 
-    
+    /*
+      // Delete reservation from automobiliste
+      
+      @DeleteMapping("/automobiliste/{id}/reservations/{reservationId}")
+      public ResponseEntity<?> deleteReservation(@PathVariable Long
+      id, @PathVariable Long reservationId) {
+      Optional<Automobiliste> automobilisteOpt =
+      automobilisteRepository.findById(id);
+      Optional<Reservation> reservationOpt =
+      reservationRepository.findById(reservationId);
+      
+      if (automobilisteOpt.isPresent() && reservationOpt.isPresent()) {
+      Automobiliste automobiliste = automobilisteOpt.get();
+      Reservation reservation = reservationOpt.get();
+      
+      if (automobiliste.getReservations().remove(reservation)) {
+      automobilisteRepository.save(automobiliste);
+      //reservationRepository.delete(reservation);
+      return ResponseEntity.ok(automobiliste);
+      }
+      
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+      .body(new
+      ErrorMessage("Reservation not found in automobiliste's reservations"));
+      }
+      
+      return ResponseEntity.status(HttpStatus.NOT_FOUND)
+      .body(new ErrorMessage("Automobiliste or Reservation not found"));
+      }
+      
+     */
+
+}
+
+/*
+ * 
+ * //To get all the automobilistes
+ * 
+ * @GetMapping("/automobilistes")
+ * java.util.List<User> getAllUsers() {
+ * return automobilisteRepository.findAll();
+ * }
+ * 
+ * 
+ * //To get a user by his cni
+ * 
+ * @GetMapping("/getuser/{cni}")
+ * 
+ * @CrossOrigin(origins = "*")
+ * User getUserByCni(@PathVariable String cni) {
+ * return automobilisteRepository.findByCni(cni)
+ * .orElseThrow(()-> new UserNotFoundException(cni));
+ * }
+ * 
+ * 
+ * //Connexion
+ * //@GetMapping("/getuser/{email}")
+ * 
+ * @PutMapping("updateuser/{cni}")
+ * User updateUser(@RequestBody User newUser,@PathVariable String cni){
+ * 
+ * return automobilisteRepository.findByCni(cni)
+ * .map(user ->{
+ * user.setCni(newUser.getCni());
+ * user.setNom(newUser.getNom());
+ * user.setPrenom(newUser.getPrenom());
+ * user.setTel(newUser.getTel());
+ * user.setEmail(newUser.getEmail());
+ * user.setMotdepasse(newUser.getMotdepasse());
+ * 
+ * return automobilisteRepository.save(user);
+ * }).orElseThrow(()-> new UserNotFoundException(cni));
+ * 
+ * }
+ * 
+ * 
+ * @PutMapping("/automobiliste/{automobilisteId}/annulerReservation/{id}")
+ * public ResponseEntity<?> annulerReservationAndRemoveFromFavoris(@PathVariable
+ * Long automobilisteId,
+ * 
+ * @PathVariable Long id) {
+ * Optional<Automobiliste> automobilisteOpt =
+ * automobilisteRepository.findById(automobilisteId);
+ * Optional<Reservation> reservationOpt = reservationRepository.findById(id);
+ * 
+ * if (automobilisteOpt.isPresent() && reservationOpt.isPresent()) {
+ * Automobiliste automobiliste = automobilisteOpt.get();
+ * Reservation reservation = reservationOpt.get();
+ * 
+ * // Set the reservation state to "annulée"
+ * reservation.setEtatReservation("annulée");
+ * 
+ * // Remove the reservation from the Automobiliste's reservations list
+ * automobiliste.getReservations().remove(reservation);
+ * 
+ * // Save changes
+ * reservationRepository.save(reservation);
+ * automobilisteRepository.save(automobiliste);
+ * 
+ * return ResponseEntity.ok(reservation);
+ * }
+ * 
+ * return ResponseEntity.status(HttpStatus.NOT_FOUND)
+ * .body(new ErrorMessage("Automobiliste or Reservation not found"));
+ * }
+ * 
+ * 
+ * 
+ */
