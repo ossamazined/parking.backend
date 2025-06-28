@@ -85,7 +85,7 @@ public class EmplacementController {
      
 
     @PutMapping("emplacement/{id}")
-    Emplacement changeEtat(@PathVariable Long id) {
+    Emplacement changeEtat_occupe(@PathVariable Long id) {
         return emplacementRepository.findById(id)
                 .map(emplacement -> {
                     emplacement.setEtat("occupe");
@@ -94,4 +94,13 @@ public class EmplacementController {
                 }).orElseThrow(() -> new EmplacementNotFoundException(id));
     }
 
+    @PutMapping("emplacement_liberer/{id}")
+    Emplacement changeEtat_libre(@PathVariable Long id) {
+        return emplacementRepository.findById(id)
+                .map(emplacement -> {
+                    emplacement.setEtat("libre");
+
+                    return emplacementRepository.save(emplacement);
+                }).orElseThrow(() -> new EmplacementNotFoundException(id));
+    }
 }
