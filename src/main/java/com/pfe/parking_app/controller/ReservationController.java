@@ -105,7 +105,7 @@ public class ReservationController {
     }
 
     // Cancel a reservation by id
-    @PutMapping("/annulerReservation/{id}")
+    @PutMapping("/reservation/{id}/cancel")
     public ResponseEntity<?> annulerReservation(@PathVariable Long id) {
         Optional<Reservation> reservationOpt = reservationRepository.findById(id);
         if (reservationOpt.isPresent()) {
