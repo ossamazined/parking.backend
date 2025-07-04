@@ -23,9 +23,6 @@ import com.pfe.parking_app.repository.EntrepriseRepository;
 import com.pfe.parking_app.repository.ParkingRepository;
 import com.pfe.parking_app.repository.ReservationRepository;
 
-
-
-
 @RestController
 @CrossOrigin(origins = "*")
 public class EntrepriseController {
@@ -39,27 +36,26 @@ public class EntrepriseController {
     @Autowired
     private ReservationRepository reservationRepository;
 
-    //To create a new Entreprise
+    // To create a new Entreprise
     @PostMapping("/entreprise")
-    Entreprise addEntreprise(@RequestBody Entreprise entreprise){
+    Entreprise addEntreprise(@RequestBody Entreprise entreprise) {
         return entrepriseRepository.save(entreprise);
     }
 
-    //Connexion
+    // Connexion
     @PostMapping("/loginentreprise")
     public ResponseEntity<?> loginEntreprise(@RequestBody Entreprise loginDetails) {
-    Entreprise entreprise = entrepriseRepository.findByEmail(loginDetails.getEmail());
-        if (entreprise != null && entreprise.getMotdepasse().equals(loginDetails.getMotdepasse())) { 
-            return ResponseEntity.ok(entreprise); 
+        Entreprise entreprise = entrepriseRepository.findByEmail(loginDetails.getEmail());
+        if (entreprise != null && entreprise.getMotdepasse().equals(loginDetails.getMotdepasse())) {
+            return ResponseEntity.ok(entreprise);
         }
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ErrorMessage("Invalid credentials"));
     }
 
-    
-    //Ajouter un nouveau parking
+    // Ajouter un nouveau parking
     @PostMapping("/entreprise/{id}/parking")
     public ResponseEntity<?> addParking(@PathVariable Long id, @RequestBody Parking parking) {
-    Optional<Entreprise> entrepriseOpt = entrepriseRepository.findById(id);
+        Optional<Entreprise> entrepriseOpt = entrepriseRepository.findById(id);
 
         if (entrepriseOpt.isPresent()) {
             Entreprise entreprise = entrepriseOpt.get();
@@ -75,9 +71,8 @@ public class EntrepriseController {
 
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorMessage("Entreprise not found"));
     }
-       
-    
-    //Get all the parkings of an entreprise
+
+    // Get all the parkings of an entreprise
     @GetMapping("/entreprise/{id}/parkings")
     public ResponseEntity<?> getParkings(@PathVariable Long id) {
         Optional<Entreprise> entrepriseOpt = entrepriseRepository.findById(id);
@@ -88,7 +83,19 @@ public class EntrepriseController {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorMessage("Parkings not found"));
     }
 
-    // Modifer profile
+    // Get all pending reservations of an entreprise
+    @GetMapping("/entreprise/{id}/reservations/pending")
+    public ResponseEntity<?> getPendingReservations(@PathVariable Long id) {
+        Optional<Entreprise> entrepriseOpt = entrepriseRepository.findById(id);
+        if (entrepriseOpt.isPresent()) {
+            List<Reservation> pendingReservations = reservationRepository.findByEntrepriseIdAndEtatReservation(id,
+                    "en attente");
+            return ResponseEntity.ok(pendingReservations);
+        }
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorMessage("Entreprise not found"));
+    }
+
+    // Modifier profile
     @PutMapping("/entreprise/{id}")
     public ResponseEntity<?> updateEntreprise(@RequestBody Entreprise newEntreprise, @PathVariable Long id) {
         Optional<Entreprise> entrepriseOpt = entrepriseRepository.findById(id);
@@ -106,7 +113,7 @@ public class EntrepriseController {
         }
     }
 
-    // Modifer le mot de passe
+    // Modifier le mot de passe
     @PutMapping("/entreprisepass/{id}")
     public ResponseEntity<?> updateEntreprisePassword(@RequestBody Entreprise newEntreprise, @PathVariable Long id) {
         Optional<Entreprise> entrepriseOpt = entrepriseRepository.findById(id);
@@ -134,164 +141,15 @@ public class EntrepriseController {
                     .body("The entreprise with id " + id + " was not found");
         }
     }
-    
 
-    //get all the reservations of an entreprise
+    // Get all the reservations of an entreprise
     @GetMapping("/entreprise/{id}/reservations")
     public ResponseEntity<?> getReservations(@PathVariable Long id) {
         Optional<Entreprise> entrepriseOpt = entrepriseRepository.findById(id);
         if (entrepriseOpt.isPresent()) {
-            List<Reservation> Reservations = reservationRepository.findByEntrepriseId(id);
-            return ResponseEntity.ok(Reservations);
+            List<Reservation> reservations = reservationRepository.findByEntrepriseId(id);
+            return ResponseEntity.ok(reservations);
         }
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorMessage("Entreprise not found"));
-    } 
-
-} 
-
-   
-     
-    
-
-     
-        
-
-
-/* 
-    //To get all Entreprises
-    @GetMapping("/Entreprises")
-    List<Entreprise> getAllEntreprises(){
-        return clientRepository.findAll();
     }
-    
-    //To get a client by its email
-    @GetMapping("/entreprise/{email}")
-    Client getClient(@PathVariable String email){
-        return clientRepository.findByEmail(email);
-        
-    }
-    
-
-    
-     
-    @GetMapping("/getclient/{nomEntreprise}")
-    @CrossOrigin(origins = "*")
-    User getClient(@PathVariable String nomEntreprise) {
-        return userRepository.findBynomEntreprise(nomEntreprise)
-        .orElseThrow(()-> new UserNotFoundException(nomEntreprise)); 
-    }
-
-     
-    
-     //To delete a client
-    @DeleteMapping("/deleteclient/{nom_entreprise}")
-    String deleteClient(@PathVariable String nom_entreprise){
-        //Find the client by nomEntreprise
-        Optional<Client> client = Optional.of(clientRepository.findBynomEntreprise(nom_entreprise));
-
-        if(client.isPresent()){
-            Long id = client.get().getId();
-
-            clientRepository.deleteById(id);
-            return "Client with the name " + nom_entreprise + " has been deleted!";
-        }else{
-            throw new ClientNotFoundException(nom_entreprise);
-        }
-
-    }
-    
-
-*/
-
-
-
-/*
-package com.pfe.parking_app.controller;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
-
-import com.pfe.parking_app.exception.ErrorMessage;
-import com.pfe.parking_app.model.Entreprise;
-import com.pfe.parking_app.repository.EntrepriseRepository;
-
-
-@RestController
-@CrossOrigin(origins = "*")
-public class EntrepriseController {
-
-    @Autowired
-    private EntrepriseRepository entrepriseRepository;
-
-    //To create a new Entreprise
-    @PostMapping("/entreprise")
-    Entreprise addEntreprise(@RequestBody Entreprise entreprise){
-        return entrepriseRepository.save(entreprise);
-    }
-
-    //Connexion
-    @PostMapping("/loginentreprise")
-    public ResponseEntity<?> loginEntreprise(@RequestBody Entreprise loginDetails) {
-    Entreprise entreprise = entrepriseRepository.findByEmail(loginDetails.getEmail());
-        if (entreprise != null && entreprise.getMotdepasse().equals(loginDetails.getMotdepasse())) { 
-            return ResponseEntity.ok(entreprise); 
-        }
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ErrorMessage("Invalid credentials"));
-    }
-
-
-    
 }
-
-/* 
-    //To get all Entreprises
-    @GetMapping("/Entreprises")
-    List<Entreprise> getAllEntreprises(){
-        return clientRepository.findAll();
-    }
-    
-    //To get a client by its email
-    @GetMapping("/entreprise/{email}")
-    Client getClient(@PathVariable String email){
-        return clientRepository.findByEmail(email);
-        
-    }
-    
-
-    
-     
-    @GetMapping("/getclient/{nomEntreprise}")
-    @CrossOrigin(origins = "*")
-    User getClient(@PathVariable String nomEntreprise) {
-        return userRepository.findBynomEntreprise(nomEntreprise)
-        .orElseThrow(()-> new UserNotFoundException(nomEntreprise)); 
-    }
-
-     
-    
-     //To delete a client
-    @DeleteMapping("/deleteclient/{nom_entreprise}")
-    String deleteClient(@PathVariable String nom_entreprise){
-        //Find the client by nomEntreprise
-        Optional<Client> client = Optional.of(clientRepository.findBynomEntreprise(nom_entreprise));
-
-        if(client.isPresent()){
-            Long id = client.get().getId();
-
-            clientRepository.deleteById(id);
-            return "Client with the name " + nom_entreprise + " has been deleted!";
-        }else{
-            throw new ClientNotFoundException(nom_entreprise);
-        }
-
-    }
-    
-
-*/
-
-

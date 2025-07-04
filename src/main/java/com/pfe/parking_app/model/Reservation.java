@@ -20,7 +20,8 @@ public class Reservation {
     private String heureDebut;
     private int duree;
 
-    private String etatReservation = "Payee";
+    // Valid states: "en attente", "Payee", "annulée"
+    private String etatReservation = "en attente";
     private Double prixTotal;
 
     @Column(unique = true)
@@ -34,10 +35,11 @@ public class Reservation {
 
     @ManyToOne
     @JoinColumn(name = "automobiliste_id")
-    @JsonIgnoreProperties({"reservations", "favoris", "vehicules"})
+    @JsonIgnoreProperties({ "reservations", "favoris", "vehicules" })
     private Automobiliste automobiliste;
 
-    public Reservation(String date, String heureDebut, int duree, Double prixTotal, String matricule, String code, Emplacement emplacement, Automobiliste automobiliste) {
+    public Reservation(String date, String heureDebut, int duree, Double prixTotal, String matricule, String code,
+            Emplacement emplacement, Automobiliste automobiliste) {
         this.date = date;
         this.heureDebut = heureDebut;
         this.duree = duree;
@@ -46,6 +48,7 @@ public class Reservation {
         this.code = code;
         this.emplacement = emplacement;
         this.automobiliste = automobiliste;
+        this.etatReservation = "en attente"; // Default for new reservations
     }
 
     public Reservation() {
@@ -89,6 +92,10 @@ public class Reservation {
     }
 
     public void setEtatReservation(String etatReservation) {
+        if (!etatReservation.equals("en attente") && !etatReservation.equals("Payee")
+                && !etatReservation.equals("annulée")) {
+            throw new IllegalArgumentException("Invalid etatReservation value: " + etatReservation);
+        }
         this.etatReservation = etatReservation;
     }
 

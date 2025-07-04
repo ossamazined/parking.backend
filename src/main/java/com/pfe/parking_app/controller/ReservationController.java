@@ -15,8 +15,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.pfe.parking_app.exception.ErrorMessage;
+import com.pfe.parking_app.model.Emplacement;
 import com.pfe.parking_app.model.Reservation;
 import com.pfe.parking_app.repository.ReservationRepository;
+import com.pfe.parking_app.repository.EmplacementRepository;
 
 @RestController
 @CrossOrigin(origins = "*")
@@ -25,10 +27,25 @@ public class ReservationController {
     @Autowired
     private ReservationRepository reservationRepository;
 
+    @Autowired
+    private EmplacementRepository emplacementRepository;
+
     // To add a new reservation
     @PostMapping("/reservation")
-    public Reservation addReservation(@RequestBody Reservation reservation) {
-        return reservationRepository.save(reservation);
+    public ResponseEntity<?> addReservation(@RequestBody Reservation reservation) {
+        // Ensure new reservation starts as "en attente"
+        reservation.setEtatReservation("en attente");
+
+        // Validate emplacement exists
+        Optional<Emplacement> emplacementOpt = emplacementRepository.findById(reservation.getEmplacement().getId());
+        if (!emplacementOpt.isPresent()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(new ErrorMessage("Emplacement not found"));
+        }
+
+        // Save reservation
+        Reservation savedReservation = reservationRepository.save(reservation);
+        return ResponseEntity.ok(savedReservation);
     }
 
     // To get all reservations
@@ -36,36 +53,30 @@ public class ReservationController {
     public List<Reservation> getAllReservation() {
         return reservationRepository.findAll();
     }
-  
-     // Edit a reservation by id
-     @PutMapping("/reservation/{id}")
-     public ResponseEntity<?> editReservation(@RequestBody Reservation newReservation, @PathVariable Long id) {
-         Optional<Reservation> reservationOpt = reservationRepository.findById(id);
-         if (reservationOpt.isPresent()) {
 
-             Reservation reservation = reservationOpt.get();
-
-             reservation.setDate(newReservation.getDate());
-             reservation.setHeureDebut(newReservation.getHeureDebut());
-             reservation.setDuree(newReservation.getDuree());
-             reservation.setPrixTotal(newReservation.getPrixTotal());
-
-             reservationRepository.save(reservation);
-             return ResponseEntity.ok(reservation);
-         } else {
-             return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                     .body(new ErrorMessage("The reservation with id " + id + " was not found"));
-         }
-     }
-   
-
-     // Cancel a reservation by id
-    @PutMapping("/annulerReservation/{id}")
-    public ResponseEntity<?> annulerReservation(@PathVariable Long id) {
+    // Edit a reservation by id
+    @PutMapping("/reservation/{id}")
+    public ResponseEntity<?> editReservation(@RequestBody Reservation newReservation, @PathVariable Long id) {
         Optional<Reservation> reservationOpt = reservationRepository.findById(id);
         if (reservationOpt.isPresent()) {
             Reservation reservation = reservationOpt.get();
-            reservation.setEtatReservation("annulée");
+            Optional<Emplacement> emplacementOpt = emplacementRepository
+                    .findById(newReservation.getEmplacement().getId());
+            if (!emplacementOpt.isPresent()) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(new ErrorMessage("Emplacement not found"));
+            }
+
+            reservation.setDate(newReservation.getDate());
+            reservation.setHeureDebut(newReservation.getHeureDebut());
+            reservation.setDuree(newReservation.getDuree());
+            reservation.setPrixTotal(newReservation.getPrixTotal());
+            reservation.setMatricule(newReservation.getMatricule());
+            reservation.setCode(newReservation.getCode());
+            reservation.setEmplacement(newReservation.getEmplacement());
+            reservation.setAutomobiliste(newReservation.getAutomobiliste());
+            reservation.setEtatReservation(newReservation.getEtatReservation());
+
             reservationRepository.save(reservation);
             return ResponseEntity.ok(reservation);
         } else {
@@ -73,25 +84,25 @@ public class ReservationController {
                     .body(new ErrorMessage("The reservation with id " + id + " was not found"));
         }
     }
- 
 
-    
-
-}
-
-/*
- // To delete a reservation by its id
-    @DeleteMapping("/reservation/{id}")
-    public String deleteReservation(@PathVariable Long id) {
-        if (reservationRepository.findById(id).isPresent()) {
-            reservationRepository.deleteById(id);
-            return "The reservation with the id : " + id + "has been deleted";
+    // Mark a reservation as paid
+    @PutMapping("/reservation/{id}/pay")
+    public ResponseEntity<?> markAsPaid(@PathVariable Long id) {
+        Optional<Reservation> reservationOpt = reservationRepository.findById(id);
+        if (reservationOpt.isPresent()) {
+            Reservation reservation = reservationOpt.get();
+            if (!reservation.getEtatReservation().equals("en attente")) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(new ErrorMessage("Only pending reservations can be marked as paid"));
+            }
+            reservation.setEtatReservation("Payee");
+            reservationRepository.save(reservation);
+            return ResponseEntity.ok(reservation);
         } else {
-            throw new ReservationNoutFoundException(id);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new ErrorMessage("The reservation with id " + id + " was not found"));
         }
-
     }
-
 
     // Cancel a reservation by id
     @PutMapping("/annulerReservation/{id}")
@@ -107,14 +118,4 @@ public class ReservationController {
                     .body(new ErrorMessage("The reservation with id " + id + " was not found"));
         }
     }
-
-
-     // To get a reservation by id
-    @GetMapping("/reservation/{id}")
-    public Reservation getReservation(@PathVariable Long id) {
-        return reservationRepository.findById(id)
-                .orElseThrow(() -> new ReservationNoutFoundException(id));
-    }
-
-
-*/
+}
